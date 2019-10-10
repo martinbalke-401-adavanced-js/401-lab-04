@@ -7,7 +7,7 @@ class Teams extends DataModel {
     super(
       {
         id: { required: true, type: 'uuid' },
-        name: { required: true, type: 'string' }
+        name: { required: true, type: 'string' },
       },
       file
     );

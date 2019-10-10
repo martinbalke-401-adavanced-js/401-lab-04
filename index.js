@@ -3,10 +3,7 @@
 const Teams = require('./models/teams.js');
 const People = require('./models/people.js');
 const Validator = require('./lib/validator.js');
-// const uuidValidate = require('uuid-validate');
 
-//.  0.    1.      2.     3
-// node index.js.  ??    ??
 let people = new People(process.argv.slice(2)[0]);
 let teams = new Teams(process.argv.slice(3)[0]);
 
@@ -52,11 +49,12 @@ async function findTeam(val) {
   return result;
 }
 
-async function readPerson(person) {
-  // search
-  // go through and read the people database
-  // find people that match whatever params this function
-  // has
+async function findPerson(id) {
+  let result = {};
+
+  if(Validator.isUUID(id)) result = await people.read('id', id);
+
+  return result;
 }
 
 async function updatePerson(id, newPersonData) {
@@ -68,7 +66,7 @@ async function updatePerson(id, newPersonData) {
   // and you need to verify the team they left still has some people
 }
 
-async function deletePerson() {
+async function deletePerson(id) {
   // if you delete a person and their team
   // no longer has people
   // you should delete the team!
@@ -85,7 +83,7 @@ async function runOperations() {
   await createPerson({
     firstName: 'Sarah',
     lastName: 'Smalls',
-    team: 'Yellow Rhino'
+    team: 'Yellow Rhino',
   });
 }
 

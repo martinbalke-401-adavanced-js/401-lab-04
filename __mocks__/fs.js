@@ -2,7 +2,7 @@
 
 module.exports = exports = {};
 
-let fileContents = 'Hello';
+let fileContents = ['Hello'];
 
 exports.readFile = (file, cb) => {
   fileContents = JSON.stringify(fileContents);

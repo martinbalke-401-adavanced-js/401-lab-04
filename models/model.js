@@ -3,7 +3,7 @@
 const fs = require('fs');
 const util = require('util');
 const uuid = require('uuid/v4');
-// const validator = require('../lib/validator.js');
+const validator = require('../lib/validator.js');
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
@@ -26,48 +26,22 @@ class Model {
     return this.database;
   }
 
-  // CRUD: create
-  async create(item) {
-    // item = the new object we're gonna write to our database
 
-    // first, check that item is the right format
-    // check it matches the schema
-    // all the required fields are there
-    // all the fields are of the right type
-    // ... is the spread operator
-    // it expands the contents of the variable so that
-    // you can copy it into another object/array
+  async create(item) {
 
     let record = { id: uuid(), ...item };
-    let isValid = this.sanitize(item);
-
+    let isValid = this.sanitize(record);
     if (isValid) {
-      // let's create the thing!
-      // first, add it to our local database object
       this.database.push(record);
-
-      // write my changed database back to the file
       await writeFile(this.file, JSON.stringify(this.database));
-
       return record;
     }
-
     return 'Invalid schema';
   }
 
-  // CRUD: read / search - we don't know if it exists
   async read(key, val) {
-    // go through this.database array
-    // if the object at this.database[indx] has a key
-    // val pair that matches the parameter val
-    // return that object
 
     let found = {};
-
-    // this is optional, but recommended
-    // in case you forgot to load, made some
-    // change and didn't update this.database, etc
-    await this.load();
 
     this.database.forEach(item => {
       if (item[key] === val) found = item;
@@ -76,29 +50,34 @@ class Model {
     return found;
   }
 
-  // CRUD: update - you usually only update something that exists
-  // if something exists, it has an id
   async update(id, item) {
-    // change a piece of the data
-    // change data where data.id === id
-    // [async] write data to file
-    // make sure your change is in this.database
-    // write this.database to file
+    console.log(item);
+    if(this.sanitize(item)){
+      let match = this.database.findIndex( (person) => person.id === id);
+      if (match > -1){
+        this.database[match] = item;
+        await writeFile(this.file, JSON.stringify(this.database));
+        return 'Updated successfully';
+      }
+      console.error('Invalid ID provided');
+    }
+    console.error('Data provided does not match schema');
   }
 
   // CRUD: delete
   async delete(id) {
-    // find this.database object where object.id === id (forEach??)
-    // remove that object (map??)
-    // [async] write the new (smaller) this.database to the file
+    let matchIndex = this.database.findIndex( (value) => value.id === id);
+    if(matchIndex > -1){
+      this.database.splice(matchIndex, 1);
+      await writeFile(this.file, JSON.stringify(this.database));
+      return 'Deleted Successfully';
+    }
+    console.error('Id does not match any instance in the database');
   }
 
   // Validation
   sanitize(item) {
-    // do something to check that item is valid
-    // against this.schema
-
-    return true;
+    return validator.isValid(this.schema, item);
   }
 }
 

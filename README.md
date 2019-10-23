@@ -59,4 +59,4 @@ Finds a person in the database based off of their ID
 * What assertions need to be / should be made?
 
 #### UML
-Link to an image of the UML for your application and response to events
+![uml](uml.jpg)

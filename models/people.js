@@ -2,6 +2,10 @@
 
 const Model = require('./model.js');
 
+/**
+ * Class People extends the model and provieds a schema or set of rules for the
+ * data to follow
+ */
 class People extends Model {
   constructor(file) {
     super(
@@ -14,8 +18,6 @@ class People extends Model {
       file
     );
   }
-
-  // nothing
 }
 
 module.exports = People;

@@ -2,6 +2,9 @@
 
 const DataModel = require('./model.js');
 
+/**
+ * Teams is the data model for the team-data
+ */
 class Teams extends DataModel {
   constructor(file) {
     super(

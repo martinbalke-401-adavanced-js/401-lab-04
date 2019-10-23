@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "players-schema.js",
   "scripts": {
+    "start": "node index.js ./data/people-data.json ./data/team-data.json",
     "test": "jest --verbose",
     "lint": "eslint '**/*.js'",
     "test-watch": "jest --watchAll --verbose"

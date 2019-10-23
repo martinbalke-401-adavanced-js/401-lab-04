@@ -3,11 +3,16 @@
 const fs = require('fs');
 const util = require('util');
 const uuid = require('uuid/v4');
-// const validator = require('../lib/validator.js');
+const validator = require('../lib/validator.js');
 
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
+/**
+ * class Model defines how data in the application is handled
+ * @param {object} schema - this is a set of rules inside of an object to define the data
+ * @param {string} file - a string which is the file location on hard drive. Provided via command line
+ */
 class Model {
   constructor(schema, file) {
     this.schema = schema;
@@ -15,7 +20,9 @@ class Model {
     this.database = [];
   }
 
-  // Initialize the database
+  /**
+   * Load is a method on the class that loads the contents from this.file
+   */
   async load() {
     // read the file asynchronously and save the results in
     // contents
@@ -26,48 +33,34 @@ class Model {
     return this.database;
   }
 
-  // CRUD: create
+  /**
+   * Create is used to insert an object in to the database. It is given a UUID and sanitized.
+   * @param {object} item - Item you wish to insert in to the database.
+   * @returns {Promise<object>} - The created item.
+   */
   async create(item) {
-    // item = the new object we're gonna write to our database
-
-    // first, check that item is the right format
-    // check it matches the schema
-    // all the required fields are there
-    // all the fields are of the right type
-    // ... is the spread operator
-    // it expands the contents of the variable so that
-    // you can copy it into another object/array
-
+    //Adding a UUID and checking the item against the schema before adding it.
     let record = { id: uuid(), ...item };
-    let isValid = this.sanitize(item);
-
+    let isValid = this.sanitize(record);
+    //If the item matches the schema type push it on to this.database and save it
     if (isValid) {
-      // let's create the thing!
-      // first, add it to our local database object
       this.database.push(record);
-
-      // write my changed database back to the file
       await writeFile(this.file, JSON.stringify(this.database));
-
+      //return the item that was added
       return record;
     }
-
+    //If the item does not pass sanitizer return
     return 'Invalid schema';
   }
-
-  // CRUD: read / search - we don't know if it exists
+  /**
+   * Read searches the database for a match of both key and val and returns the found item
+   * @param {string} key - The key that you should search for IE 'id' or 'firstName'
+   * @param {string} val  - The value in the key value pair
+   * @returns {Promise<object>} -  The item that was found
+   */
   async read(key, val) {
-    // go through this.database array
-    // if the object at this.database[indx] has a key
-    // val pair that matches the parameter val
-    // return that object
 
     let found = {};
-
-    // this is optional, but recommended
-    // in case you forgot to load, made some
-    // change and didn't update this.database, etc
-    await this.load();
 
     this.database.forEach(item => {
       if (item[key] === val) found = item;
@@ -76,29 +69,46 @@ class Model {
     return found;
   }
 
-  // CRUD: update - you usually only update something that exists
-  // if something exists, it has an id
+  /**
+   * Update searches the database by ID then if there is a match updates that item
+   * @param {string} id - ID to search by
+   * @param {object} item - Updated object properties
+   * @returns {string} - Notifies you of a successful update
+   */
   async update(id, item) {
-    // change a piece of the data
-    // change data where data.id === id
-    // [async] write data to file
-    // make sure your change is in this.database
-    // write this.database to file
+    console.log(item);
+    if(this.sanitize(item)){
+      let match = this.database.findIndex( (person) => person.id === id);
+      if (match > -1){
+        this.database[match] = item;
+        await writeFile(this.file, JSON.stringify(this.database));
+        return 'Updated successfully';
+      }
+      console.error('Invalid ID provided');
+    }
+    console.error('Data provided does not match schema');
   }
 
-  // CRUD: delete
+  /**
+   * Delete searches the database for the provided id and then removes that item
+   * @param {string} id - The id of the item you wish to search for
+   */
   async delete(id) {
-    // find this.database object where object.id === id (forEach??)
-    // remove that object (map??)
-    // [async] write the new (smaller) this.database to the file
+    let matchIndex = this.database.findIndex( (value) => value.id === id);
+    if(matchIndex > -1){
+      this.database.splice(matchIndex, 1);
+      await writeFile(this.file, JSON.stringify(this.database));
+      return 'Deleted Successfully';
+    }
   }
 
-  // Validation
+  /**
+   * Sanitize uses the validator library to check all items inserted against the this.schema
+   * @param {object} item - Object you want to validate
+   * @returns {boolean}
+   */
   sanitize(item) {
-    // do something to check that item is valid
-    // against this.schema
-
-    return true;
+    return validator.isValid(this.schema, item);
   }
 }
 
